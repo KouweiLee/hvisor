@@ -22,3 +22,8 @@ panic = "abort"
 
 [profile.release]
 panic = "abort"
+
+[features]
+default = ["nxp"]
+qemu = []
+nxp = []

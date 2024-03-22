@@ -61,9 +61,9 @@ use spin::{Once, RwLock};
 
 use crate::arch::Stage1PageTable;
 use crate::config::HvSystemConfig;
-use crate::consts::{HV_BASE, TRAMPOLINE_START};
+use crate::consts::{hv_page_offset, HV_BASE, TRAMPOLINE_START};
 use crate::device::gicv3::{GICD_SIZE, GICR_SIZE};
-use crate::device::pl011::UART_BASE_VIRT;
+use crate::device::uart::UART_BASE_VIRT;
 use crate::error::HvResult;
 use crate::header::HvHeader;
 
@@ -122,24 +122,24 @@ pub fn init_hv_page_table() -> HvResult {
     let sys_config = HvSystemConfig::get();
     let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
     let hv_phys_size = sys_config.hypervisor_memory.size as usize;
-    let trampoline_page = TRAMPOLINE_START as usize - 0xffff_4060_0000;
+    let trampoline_page = TRAMPOLINE_START as usize - hv_page_offset();
     let gicd_base = sys_config.platform_info.arch.gicd_base;
     let gicr_base = sys_config.platform_info.arch.gicr_base;
-    let gicr_size: u64 = HvHeader::get().online_cpus as u64 * GICR_SIZE;
+    let _gicr_size: u64 = HvHeader::get().online_cpus as u64 * GICR_SIZE;
     let mmcfg_start = sys_config.platform_info.pci_mmconfig_base;
     let mmcfg_size = (sys_config.platform_info.pci_mmconfig_end_bus + 1) as u64 * 256 * 4096;
 
     let mut hv_pt: MemorySet<Stage1PageTable> = MemorySet::new();
 
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
-        HV_BASE as GuestPhysAddr,
+        HV_BASE as HostVirtAddr,
         hv_phys_start as HostPhysAddr,
         hv_phys_size as usize,
         MemFlags::READ | MemFlags::WRITE | MemFlags::NO_HUGEPAGES,
     ))?;
 
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
-        trampoline_page as GuestPhysAddr,
+        trampoline_page as HostVirtAddr,
         trampoline_page as HostPhysAddr,
         PAGE_SIZE as usize,
         MemFlags::READ | MemFlags::WRITE,
@@ -154,27 +154,28 @@ pub fn init_hv_page_table() -> HvResult {
 
     // add gicd memory map
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
-        gicd_base as GuestPhysAddr,
+        gicd_base as HostVirtAddr,
         gicd_base as HostPhysAddr,
         GICD_SIZE as usize,
         MemFlags::READ | MemFlags::WRITE | MemFlags::IO,
     ))?;
     //add gicr memory map
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
-        gicr_base as GuestPhysAddr,
+        gicr_base as HostVirtAddr,
         gicr_base as HostPhysAddr,
-        gicr_size as usize,
+        0xC0000 as usize,
         MemFlags::READ | MemFlags::WRITE | MemFlags::IO,
     ))?;
     // Map pci region. Jailhouse doesn't map pci region to el2.
     // Now we simplify the complex pci handler and just map it.
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
-        mmcfg_start as GuestPhysAddr,
+        mmcfg_start as HostVirtAddr,
         mmcfg_start as HostPhysAddr,
         mmcfg_size as usize,
         MemFlags::READ | MemFlags::WRITE | MemFlags::IO,
     ))?;
-
+    #[cfg(feature = "qemu")]
+    {
     // add virtio map
     hv_pt.insert(MemoryRegion::new_with_offset_mapper(
         0xa000000 as GuestPhysAddr,
@@ -190,6 +191,7 @@ pub fn init_hv_page_table() -> HvResult {
         0x20000 as usize,
         MemFlags::READ | MemFlags::WRITE | MemFlags::IO,
     ))?;
+    }
 
     info!("Hypervisor page table init end.");
     debug!("Hypervisor virtual memory set: {:#x?}", hv_pt);

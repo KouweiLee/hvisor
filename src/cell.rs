@@ -201,7 +201,7 @@ impl Cell {
             self.mmio_region_register(gicr_base, GICR_SIZE, gicv3_gicr_mmio_handler, cpu as _);
         }
         LAST_GICR.call_once(|| last_gicr - 1);
-        self.mmio_region_register(0x8080000, 0x20000, mmio_generic_handler, 0x8080000);
+        // self.mmio_region_register(0x8080000, 0x20000, mmio_generic_handler, 0x8080000);
     }
 
     /// Get cell id

@@ -50,7 +50,9 @@ $(target_bin): elf
 	$(OBJCOPY) $(target_elf) --strip-all -O binary $@
 run: all
 	cd qemu-test/host && ./test.sh
-
+	
+nxp: all
+	cd qemu-test/host && ./nxp_sync.sh
 monitor:
 	gdb-multiarch vmlinux \
 	-ex 'target remote:1234' \

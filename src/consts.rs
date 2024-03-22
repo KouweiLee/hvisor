@@ -39,6 +39,10 @@ pub fn free_memory_start() -> VirtAddr {
 pub fn hv_end() -> VirtAddr {
     HV_BASE + HvSystemConfig::get().hypervisor_memory.size as usize
 }
+/// Offset between virtual and physical hypervisor addresses
+pub fn hv_page_offset() -> usize {
+    HV_BASE - HvSystemConfig::get().hypervisor_memory.phys_start as usize
+}
 
 extern "C" {
     fn __header_start();

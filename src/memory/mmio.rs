@@ -42,10 +42,10 @@ impl MMIORegion {
 
 pub fn mmio_perform_access(base: u64, mmio: &mut MMIOAccess) {
     let addr = base as usize + mmio.address;
-    if addr >= 0x80_0000_3000 && addr < 0x80_0000_4000 {
-        info!("access addr:{:#X}, elr:{:#X}", addr, ELR_EL2.get());
-        return;
-    }
+    // if addr >= 0x80_0000_3000 && addr < 0x80_0000_4000 {
+    //     info!("access addr:{:#X}, elr:{:#X}", addr, ELR_EL2.get());
+    //     return;
+    // }
     unsafe {
         if mmio.is_write {
             match mmio.size {

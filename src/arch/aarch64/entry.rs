@@ -90,6 +90,21 @@ pub unsafe extern "C" fn el2_entry() {
 pub unsafe extern "C" fn boot_pt() -> i32 {
     core::arch::asm!(
         "
+        /*
+        * Initialize early page tables to bootstrap the
+        * initialization process. These tables will be replaced
+        * during hypervisor initialization.
+        *
+        * x0: physical address of trampoline page
+        * x12: physical address of hypervisor binary
+        * x13: virtual address of hypervisor binary
+        * x14: physical address of uart to map
+        * x15: virtual address of uart to map
+        *
+        * These are referenced statically for now.
+        *
+        * Clobbers x0-x4,x8,x9
+        */
         adrp	x0, __trampoline_start  //phy addr
 
         /* map the l1 table that includes the firmware and the uart */
@@ -105,10 +120,11 @@ pub unsafe extern "C" fn boot_pt() -> i32 {
         set_table bootstrap_pt_l1_hyp_uart, x2, bootstrap_pt_l2_hyp_uart
         get_index x4, x0, 1
         set_block bootstrap_pt_l1_trampoline, x4, x0, 1
-    
+
+        /*  fill the l2 tables */
         get_index x2, x13, 2
         set_block bootstrap_pt_l2_hyp_uart, x2, x12, 2
-        # add l2 block 2M
+        # add l2 block 2M, means hvisor.bin can reach to 4MB
         add x12, x12, #0x200000
         add x13, x13, #0x200000
         get_index x2, x13, 2

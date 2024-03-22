@@ -198,6 +198,7 @@ pub struct S2PTInstr;
 
 impl PagingInstr for S2PTInstr {
     unsafe fn activate(root_paddr: HostPhysAddr) {
+        info!("cell stage 2 enable");
         VTTBR_EL2.set_baddr(root_paddr as _);
         isb();
         arm_paging_vcpu_flush_tlbs();

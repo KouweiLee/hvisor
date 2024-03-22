@@ -132,6 +132,7 @@ pub fn gicv3_cpu_init() {
     let vmcr = ((pmr & 0xff) << 24) | (1 << 1) | (1 << 9); //VPMR|VENG1|VEOIM
     write_sysreg!(ich_vmcr_el2, vmcr);
     write_sysreg!(ich_hcr_el2, 0x1); //enable virt cpu interface
+    info!("gicv3 cpu init finished");
 }
 
 fn gicv3_clear_pending_irqs() {

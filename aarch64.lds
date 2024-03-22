@@ -27,7 +27,12 @@ SECTIONS
 							. = . + (1 << 12); bootstrap_pt_l2_hyp_uart = .; 
 							. = . + (1 << 12); bootstrap_pt_l0_s2 = .;
 							. = . + (1 << 12); bootstrap_pt_l1_s2 = .; 
-							. = . + (1 << 12); } .trampoline : { __trampoline_start = .; *(.trampoline) }
+							. = . + (1 << 12); } 
+	
+	.trampoline : { 
+		__trampoline_start = .; 
+		*(.trampoline) 
+	}
 
 	. = ALIGN(4K);
 	.bss		: { *(.bss .bss.*) *(COMMON) 
