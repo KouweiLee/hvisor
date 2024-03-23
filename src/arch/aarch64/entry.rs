@@ -33,15 +33,14 @@ pub unsafe extern "C" fn arch_entry() -> i32 {
             ldr x14, [x1, #44]                      //SYSCONFIG_DEBUG_CONSOLE_PHYS
             ldr x15, ={uart_base_virt}              //consts
             sub	x11, x12, x13                       //x11= (el2 mmu on)virt-phy offset
-            // TODO: flush dcache
             /*
              * When switching to EL2 using hvc #0, before the MMU is enabled, some
              * data may still be kept in D-cache, such as the hypervisor core code.
              * Flush it so that the CPU does not fetch wrong instructions.
              */
-            // adrp x1,__core_size
-            // mov	x2, #2
-            // bl	arm_dcaches_flush
+             ldr x1, =__core_size
+             mov	x2, #2
+             bl	arm_dcaches_flush
 
             ldr	x1, =bootstrap_vectors
             virt2phys x1       
