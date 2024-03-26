@@ -66,6 +66,7 @@ use crate::device::gicv3::{GICD_SIZE, GICR_SIZE};
 use crate::device::uart::UART_BASE_VIRT;
 use crate::error::HvResult;
 use crate::header::HvHeader;
+use crate::memory::addr::phys_to_virt;
 
 pub use addr::{
     GuestPhysAddr, GuestVirtAddr, HostPhysAddr, HostVirtAddr, PhysAddr, VirtAddr, PHYS_VIRT_OFFSET,
@@ -121,6 +122,8 @@ pub fn init_frame_allocator() {
 pub fn init_hv_page_table() -> HvResult {
     let sys_config = HvSystemConfig::get();
     let hv_phys_start = sys_config.hypervisor_memory.phys_start as usize;
+    let hv_virt_start = phys_to_virt(hv_phys_start);
+    info!("hv offset is {}", hv_virt_start);
     let hv_phys_size = sys_config.hypervisor_memory.size as usize;
     let trampoline_page = TRAMPOLINE_START as usize - hv_page_offset();
     let gicd_base = sys_config.platform_info.arch.gicd_base;

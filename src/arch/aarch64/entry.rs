@@ -175,6 +175,38 @@ pub unsafe extern "C" fn arm_dcaches_flush() {
     );
 }
 
+
+#[naked]
+#[no_mangle]
+#[link_section = ".trampoline"]
+pub unsafe extern "C" fn enable_mmu_el2(root_paddr: usize) {
+    core::arch::asm!("
+        ldr	x1, =MAIR_FLAG
+        msr	mair_el2, x1
+        ldr	x1, =TCR_FLAG
+        msr	tcr_el2, x1
+
+	    msr	ttbr0_el2, x0
+        isb
+	    tlbi	alle2
+	    dsb	nsh   //Memory&ins Barrier 
+
+        /* Enable MMU, allow cacheability for instructions and data */
+	    ldr	x1, =SCTLR_FLAG
+	    msr	sctlr_el2, x1
+
+	    isb
+	    tlbi	alle2
+	    dsb	nsh
+
+        ret
+    ",
+    options(noreturn),
+
+);
+}
+
+
 #[naked]
 #[no_mangle]
 #[link_section = ".trampoline"]

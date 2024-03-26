@@ -7,6 +7,8 @@ use tock_registers::interfaces::Writeable;
 use crate::memory::addr::{GuestPhysAddr, HostPhysAddr, PhysAddr};
 use crate::memory::{GenericPTE, Level4PageTable, MemFlags, PagingInstr, PAGE_SIZE};
 
+use super::entry::enable_mmu_el2;
+
 bitflags::bitflags! {
     /// Memory attribute fields in the VMSAv8-64 translation table format descriptors.
     #[derive(Clone, Copy, Debug)]
@@ -203,6 +205,8 @@ pub struct S1PTInstr;
 
 impl PagingInstr for S1PTInstr {
     unsafe fn activate(root_paddr: HostPhysAddr) {
+
+        // enable_mmu_el2(root_paddr);
         info!("root table activated");
         // TTBR1_EL2 is ignored by PE because HCR_EL2.E2H is 0.
         TTBR0_EL2.set(root_paddr as _);

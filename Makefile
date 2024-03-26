@@ -54,9 +54,13 @@ run: all
 nxp: all
 	cd qemu-test/host && ./nxp_sync.sh
 monitor:
-	gdb-multiarch vmlinux \
-	-ex 'target remote:1234' \
-	-ex 'continue'
+	gdb-multiarch \
+	-ex 'set architecture aarch64' \
+	-ex 'file $(target_elf)' \
+	-ex 'target ext:2331' 
+
+
+# -ex 'continue'
 
 #	-ex 'file $(target_elf)' \
 #	-ex 'add-symbol-file $(guest_obj)' \
