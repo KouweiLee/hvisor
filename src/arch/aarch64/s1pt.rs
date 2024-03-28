@@ -4,6 +4,7 @@ use core::fmt;
 use numeric_enum_macro::numeric_enum;
 use tock_registers::interfaces::Writeable;
 
+use crate::device::imx_uart::console_putchar;
 use crate::memory::addr::{GuestPhysAddr, HostPhysAddr, PhysAddr};
 use crate::memory::{GenericPTE, Level4PageTable, MemFlags, PagingInstr, PAGE_SIZE};
 
@@ -208,6 +209,10 @@ impl PagingInstr for S1PTInstr {
 
         // enable_mmu_el2(root_paddr);
         info!("root table activated");
+        core::arch::asm!("
+            isb
+            dsb nsh
+        ");
         // TTBR1_EL2 is ignored by PE because HCR_EL2.E2H is 0.
         TTBR0_EL2.set(root_paddr as _);
         core::arch::asm!(
@@ -217,6 +222,7 @@ impl PagingInstr for S1PTInstr {
                 dsb	nsh
             "
         );
+        console_putchar('z' as u8);
         info!("root table activate finished");
     }
 

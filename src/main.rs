@@ -123,7 +123,7 @@ fn per_cpu_init() {
     unsafe {
         memory::hv_page_table().read().activate();
         root_cell().read().gpm_activate();
-    };
+    }; 
     println!("CPU {} init OK.", cpu_data.id);
 }
 
@@ -151,7 +151,12 @@ fn main(cpu_data: &'static mut PerCpu) -> HvResult {
         wait_for_counter(&INIT_EARLY_OK, 1)?
     }
 
-    per_cpu_init();
+    if is_primary {
+        per_cpu_init();
+    } else {
+        loop {
+        }
+    }
 
     INITED_CPUS.fetch_add(1, Ordering::SeqCst);
     wait_for_counter(&INITED_CPUS, online_cpus)?;

@@ -13,12 +13,12 @@ const UTS: usize = 0xb4;
 const UTXD: usize = 0x40;
 const UTS_TXEMPTY: u32 = 1 << 6;
 
-lazy_static! {
-    static ref UART: Mutex<ImxUart> = {
-        let uart = ImxUart::new(UART_BASE_VIRT);
-        Mutex::new(uart)
+// lazy_static! {
+    static mut UART: ImxUart = {
+        ImxUart::new(UART_BASE_VIRT)
+        // Mutex::new(uart)
     };
-}
+// }
 
 struct ImxUart {
     base_vaddr: VirtAddr,
@@ -44,5 +44,7 @@ impl ImxUart {
 }
 
 pub fn console_putchar(c: u8) {
-    UART.lock().putchar(c)
+    unsafe {
+        UART.putchar(c)
+    }
 }
